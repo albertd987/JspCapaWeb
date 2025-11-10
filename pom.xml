@@ -19,6 +19,11 @@
             <version>${jakartaee}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+        <groupId>com.tallersmanolo</groupId>
+        <artifactId>P1-T4-DAOOracle</artifactId>
+        <version>1.0-SNAPSHOT</version>
+</dependency>
     </dependencies>
     
     <build>
