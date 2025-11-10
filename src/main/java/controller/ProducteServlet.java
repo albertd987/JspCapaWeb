@@ -23,7 +23,7 @@ import model.Producte;
  * - Eliminar producte (POST amb action=delete)
  * 
  * @author DomenechObiolAlbert
- * @version 1.0
+ * @version 1.1 - Afegida validació de components en creació
  */
 @WebServlet(name = "ProducteServlet", urlPatterns = {"/ProducteServlet"})
 public class ProducteServlet extends HttpServlet {
@@ -149,6 +149,10 @@ public class ProducteServlet extends HttpServlet {
 
     /**
      * Gestiona la creació d'un nou producte
+     * 
+     * MODIFICACIÓ v1.1: Afegida validació de components
+     * - Si el producte no té components, redirigeix a afegir-components.jsp
+     * - Si el producte té components, mostra missatge d'èxit
      */
     private void handleCreate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -189,21 +193,35 @@ public class ProducteServlet extends HttpServlet {
 
             if (exit) {
                 log("Producte creat: " + codi);
-                request.setAttribute("success", "Producte creat correctament");
+                
+                // 🔍 VALIDACIÓ DE COMPONENTS (NOU en v1.1)
+                boolean teComponents = daoProducte.teComponents(codi.trim());
+                
+                if (teComponents) {
+                    // Cas excepcional: producte ja té components (per exemple, si s'està recreant)
+                    request.setAttribute("success", "Producte creat correctament");
+                    doGet(request, response);
+                } else {
+                    // Cas normal: producte sense components → redirigir a afegir components
+                    log("⚠️ Producte " + codi + " sense components. Redirigint a afegir-components.jsp");
+                    response.sendRedirect("ComponentProducteServlet?producte=" + codi.trim() + 
+                                        "&nouProducte=true");
+                }
+                
             } else {
-                log(" No s'ha pogut crear el producte: " + codi);
+                log("❌ No s'ha pogut crear el producte: " + codi);
                 request.setAttribute("error", "No s'ha pogut crear el producte");
+                doGet(request, response);
             }
 
         } catch (NumberFormatException e) {
             request.setAttribute("error", "L'estoc ha de ser un número enter");
+            doGet(request, response);
         } catch (Exception e) {
             log("Error creant producte: " + e.getMessage());
             request.setAttribute("error", "Error creant producte: " + e.getMessage());
+            doGet(request, response);
         }
-
-        // Recarregar llista
-        doGet(request, response);
     }
 
     /**
@@ -224,9 +242,8 @@ public class ProducteServlet extends HttpServlet {
         }
 
         try {
-            // Buscar producte existent
             Producte producte = daoProducte.findById(codi.trim());
-
+            
             if (producte == null) {
                 request.setAttribute("error", "Producte no trobat: " + codi);
                 doGet(request, response);
@@ -244,7 +261,6 @@ public class ProducteServlet extends HttpServlet {
                 producte.setItStock(Integer.parseInt(estocStr));
             }
 
-            // Actualitzar a la base de dades
             boolean exit = daoProducte.actualitzar(producte);
 
             if (exit) {

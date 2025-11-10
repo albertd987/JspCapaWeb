@@ -1,4 +1,5 @@
 controller\CharacterEncodingFilter.class
+controller\ComponentProducteServlet.class
 controller\ProducteServlet.class
 com\mycompany\capaweb\JakartaRestConfiguration.class
 com\mycompany\capaweb\resources\JakartaEE10Resource.class
