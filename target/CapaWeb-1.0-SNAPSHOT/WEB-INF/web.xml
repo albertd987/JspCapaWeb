@@ -3,12 +3,31 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
+    
+    <!-- Configuració de sessió -->
     <session-config>
-        <session-timeout>
-            30
-        </session-timeout>
+        <session-timeout>30</session-timeout>
     </session-config>
+    
+    <!-- Pàgina d'inici -->
     <welcome-file-list>
+        <welcome-file>ProducteServlet</welcome-file>
         <welcome-file>productes.jsp</welcome-file>
     </welcome-file-list>
+    
+    <!-- Configuració d'encoding per defecte -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>controller.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
 </web-app>

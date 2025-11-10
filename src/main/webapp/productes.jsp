@@ -1,11 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%
+    // Si s'accedeix directament sense passar pel servlet, redirigir
+    if (request.getAttribute("productes") == null) {
+        response.sendRedirect("ProducteServlet");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestió de productes - Tallers Manolo</title>
-    <link rel="stylesheet" href="css\tallersmanolo.css">
+    <link rel="stylesheet" href="css/tallersmanolo.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,7 +22,7 @@
     <header class="capsalera">
         <div class="logo">TALLERS MANOLO</div>
         <nav class="navegacio">
-            <a href="productes.jsp" class="enllac-nav actiu">PRODUCTES</a>
+            <a href="ProducteServlet" class="enllac-nav actiu">PRODUCTES</a>
             <a href="components.jsp" class="enllac-nav">COMPONENTS PRIMARIS</a>
         </nav>
     </header>
@@ -22,169 +30,173 @@
     <main class="contenidor">
         <h1>Gestió de productes</h1>
         
-        <div class="barra-accions">
-            <div class="caixa-cerca">
-                <span class="icona-cerca">🔍</span>
-                <input type="text" class="input-cerca" placeholder="filtrar per codi">
+        <!-- Missatges d'èxit o error -->
+        <c:if test="${not empty success}">
+            <div class="alert alert-success">
+                ✅ ${success}
             </div>
+        </c:if>
+        
+        <c:if test="${not empty error}">
+            <div class="alert alert-error">
+                ❌ ${error}
+            </div>
+        </c:if>
+        
+        <div class="barra-accions">
+            <!-- Formulari de cerca -->
+            <form action="ProducteServlet" method="get" class="caixa-cerca">
+                <span class="icona-cerca">🔍</span>
+                <input type="text" 
+                       name="filtre" 
+                       class="input-cerca" 
+                       placeholder="filtrar per codi"
+                       value="${filtre}">
+                <button type="submit" style="display:none;">Cercar</button>
+            </form>
+            
             <a href="editar-producte.jsp" class="boto boto-primari">NOU PRODUCTE</a>
         </div>
 
         <div class="contenidor-taula">
-            <table class="taula">
-                <thead>
-                    <tr>
-                        <th>Codi</th>
-                        <th>Nom del Producte</th>
-                        <th>Descripció</th>
-                        <th>Informe BOM</th>
-                        <th>Accions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>PRD-001</td>
-                        <td>Motor V8 Turbo</td>
-                        <td>Motor de combustió interna de 8 cilindres amb turbocompressor</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-001" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-001" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-002</td>
-                        <td>Transmissió Automàtic</td>
-                        <td>Sistema de transmissió automàtic de 8 velocitats</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-002" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-002" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-003</td>
-                        <td>Xassís Reforçat</td>
-                        <td>Estructura de xassís reforçat per vehicles pesants</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-003" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-003" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-004</td>
-                        <td>Sistema Suspensió</td>
-                        <td>Sistema complet de suspensió amb amortidors ajustables</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-004" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-004" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-005</td>
-                        <td>Unitat Control Motor</td>
-                        <td>Unitat electrònica de control i gestió del motor</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-005" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-005" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-006</td>
-                        <td>Direcció Assistida</td>
-                        <td>Conjunt de bomba i mecanisme de direcció assistida</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-006" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-006" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-007</td>
-                        <td>Alternador 150A</td>
-                        <td>Generador elèctric per subministrar energia al vehicle</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-007" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-007" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-008</td>
-                        <td>Radiador Alta Eficiència</td>
-                        <td>Sistema de refrigeració amb major dissipació tèrmica</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-008" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-008" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-009</td>
-                        <td>Injecció Electrònica</td>
-                        <td>Conjunt d'injectors i rampa de combustible</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-009" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-009" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-010</td>
-                        <td>Frenada ABS</td>
-                        <td>Conjunt de control electrònic i sensors per sistema antibloqueig</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-010" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-010" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-011</td>
-                        <td>Bateria 12V 95Ah</td>
-                        <td>Font d'energia elèctrica per arrencada i electrònica</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-011" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-011" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-012</td>
-                        <td>Escape Esportiu</td>
-                        <td>Línia d'escapament amb menor contrapressió</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-012" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-012" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PRD-013</td>
-                        <td>Turbocompressor Dual</td>
-                        <td>Dispositiu de sobrealimentació amb dues turbines</td>
-                        <td><a href="#" class="text-destacat">📄</a></td>
-                        <td class="accions-cel">
-                            <a href="editar-producte.jsp?codi=PRD-013" class="boto-icona">✏️</a>
-                            <a href="esborrar-producte.jsp?codi=PRD-013" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="paginacio">
-            <a href="#" class="pagina-enllac actiu">1</a>
-            <a href="#" class="pagina-enllac">2</a>
-            <a href="#" class="pagina-enllac">3</a>
-            <a href="#" class="pagina-enllac">4</a>
-            <a href="#" class="pagina-enllac">5</a>
-            <span>...</span>
-            <a href="#" class="pagina-enllac">Final</a>
+            <c:choose>
+                <c:when test="${empty productes}">
+                    <p class="text-empty">No hi ha productes per mostrar.</p>
+                </c:when>
+                
+                <c:otherwise>
+                    <table class="taula">
+                        <thead>
+                            <tr>
+                                <th>Codi</th>
+                                <th>Nom del Producte</th>
+                                <th>Descripció</th>
+                                <th>Stock</th>
+                                <th>Informe BOM</th>
+                                <th>Accions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="producte" items="${productes}">
+                                <tr>
+                                    <td>${producte.prCodi}</td>
+                                    <td>${producte.itNom}</td>
+                                    <td>${producte.itDesc}</td>
+                                    <td>${producte.itStock}</td>
+                                    <td>
+                                        <a href="BOMServlet?codi=${producte.prCodi}" 
+                                           class="link-bom" 
+                                           title="Generar BOM PDF">
+                                            📄 BOM
+                                        </a>
+                                    </td>
+                                    <td class="accions">
+                                        <!-- Editar -->
+                                        <a href="editar-producte.jsp?codi=${producte.prCodi}" 
+                                           class="btn-icon btn-edit" 
+                                           title="Editar">
+                                            ✏️
+                                        </a>
+                                        
+                                        <!-- Eliminar amb confirmació -->
+                                        <form action="ProducteServlet" 
+                                              method="post" 
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Segur que vols eliminar ${producte.prCodi}?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="codiProducte" value="${producte.prCodi}">
+                                            <button type="submit" 
+                                                    class="btn-icon btn-delete" 
+                                                    title="Eliminar">
+                                                🗑️
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Resum -->
+                    <div class="taula-footer">
+                        <p>Total de productes: <strong>${productes.size()}</strong></p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </main>
+    
+    <style>
+        /* Estils per missatges */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .text-empty {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .accions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .btn-edit:hover {
+            transform: scale(1.2);
+        }
+        
+        .btn-delete {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        
+        .btn-delete:hover {
+            transform: scale(1.2);
+        }
+        
+        .link-bom {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .link-bom:hover {
+            text-decoration: underline;
+        }
+        
+        .taula-footer {
+            margin-top: 15px;
+            text-align: right;
+            color: #666;
+        }
+    </style>
 </body>
 </html>
