@@ -26,7 +26,8 @@
         <!-- Missatge informatiu si és producte nou -->
         <c:if test="${param.nouProducte == 'true'}">
             <div class="alert alert-info">
-                ⚠️ <strong>Producte creat correctament.</strong> 
+                <img src="media/warning.svg" alt="Informació" class="alert-icon">
+️ <strong>Producte creat correctament.</strong> 
                 Afegeix almenys 1 component per completar-lo.
             </div>
         </c:if>

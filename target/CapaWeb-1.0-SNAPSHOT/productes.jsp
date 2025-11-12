@@ -33,20 +33,20 @@
         <!-- Missatges d'èxit o error -->
         <c:if test="${not empty success}">
             <div class="alert alert-success">
-                ✅ ${success}
+                ${success}
             </div>
         </c:if>
         
         <c:if test="${not empty error}">
             <div class="alert alert-error">
-                ❌ ${error}
+                ${error}
             </div>
         </c:if>
         
         <div class="barra-accions">
             <!-- Formulari de cerca -->
             <form action="ProducteServlet" method="get" class="caixa-cerca">
-                <span class="icona-cerca">🔍</span>
+                <span class="icona-cerca"><img src="media/search.svg" alt="search"></span>
                 <input type="text" 
                        name="filtre" 
                        class="input-cerca" 
@@ -87,7 +87,7 @@
                                         <a href="BOMServlet?codi=${producte.prCodi}" 
                                            class="link-bom" 
                                            title="Generar BOM PDF">
-                                            📄 BOM
+                                            <img src="media/file.svg" alt="Información" class="delete-icon">
                                         </a>
                                     </td>
                                     <td class="accions">
@@ -95,7 +95,7 @@
                                         <a href="editar-producte.jsp?codi=${producte.prCodi}" 
                                            class="btn-icon btn-edit" 
                                            title="Editar">
-                                            ✏️
+                                            <img src="media/edit.svg" alt="Información" class="delete-icon">
                                         </a>
                                         
                                         <!-- Eliminar amb confirmació -->
@@ -108,7 +108,7 @@
                                             <button type="submit" 
                                                     class="btn-icon btn-delete" 
                                                     title="Eliminar">
-                                                🗑️
+                                                <img src="media/delete.svg" alt="Información" class="delete-icon">
                                             </button>
                                         </form>
                                     </td>

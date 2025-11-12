@@ -1,11 +1,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%
+    // Si s'accedeix directament sense passar pel servlet, redirigir
+    if (request.getAttribute("components") == null) {
+        response.sendRedirect("ComponentServlet");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestió de components - Tallers Manolo</title>
-    <link rel="stylesheet" href="css\tallersmanolo.css">
+    <link rel="stylesheet" href="css/tallersmanolo.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,245 +23,224 @@
     <header class="capsalera">
         <div class="logo">TALLERS MANOLO</div>
         <nav class="navegacio">
-            <a href="productes.jsp" class="enllac-nav">PRODUCTES</a>
-            <a href="components.jsp" class="enllac-nav actiu">COMPONENTS PRIMARIS</a>
+            <a href="ProducteServlet" class="enllac-nav">PRODUCTES</a>
+            <a href="ComponentServlet" class="enllac-nav actiu">COMPONENTS PRIMARIS</a>
         </nav>
     </header>
 
     <main class="contenidor">
         <h1>Gestió de components</h1>
         
-        <div class="barra-accions">
-            <div class="caixa-cerca">
-                <span class="icona-cerca">🔍</span>
-                <input type="text" class="input-cerca" placeholder="filtrar per codi">
+        <!-- Missatges d'èxit o error -->
+        <c:if test="${not empty success}">
+            <div class="alert alert-success">
+                ✅ ${success}
             </div>
+        </c:if>
+        
+        <c:if test="${not empty error}">
+            <div class="alert alert-error">
+                ❌ ${error}
+            </div>
+        </c:if>
+        
+        <div class="barra-accions">
+            <!-- Formulari de cerca -->
+            <form action="ComponentServlet" method="get" class="caixa-cerca">
+                <span class="icona-cerca"><img src="media/search.svg" alt="search"></span>
+                <input type="text" 
+                       name="filtre" 
+                       class="input-cerca" 
+                       placeholder="filtrar per codi"
+                       value="${filtre}">
+                <button type="submit" style="display:none;">Cercar</button>
+            </form>
+            
             <a href="editar-component.jsp" class="boto boto-primari">NOU COMPONENT</a>
         </div>
 
         <div class="contenidor-taula">
-            <table class="taula">
-                <thead>
-                    <tr>
-                        <th>Codi</th>
-                        <th>Nom del Component</th>
-                        <th>Codi Fabricant</th>
-                        <th>Estoc</th>
-                        <th>Unitat</th>
-                        <th>Preu Mitjà</th>
-                        <th>Proveïdors</th>
-                        <th>Accions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>CMP-101</td>
-                        <td>Acer Inoxidable 316L</td>
-                        <td>ACR316L-01</td>
-                        <td>450</td>
-                        <td>kg</td>
-                        <td class="text-destacat">15.50 €</td>
-                        <td class="llista-proveidors">Acersa SA (15.20 €); Metalcorp SL (15.80 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-101" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-101" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-205</td>
-                        <td>Aliatge Alumini 7075</td>
-                        <td>AL7075-02</td>
-                        <td>320</td>
-                        <td>kg</td>
-                        <td class="text-destacat">22.30 €</td>
-                        <td class="llista-proveidors">Alumetal SL (22.30 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-205" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-205" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-312</td>
-                        <td>Coure Electrolític</td>
-                        <td>CU-ELEC-03</td>
-                        <td>180</td>
-                        <td>kg</td>
-                        <td class="text-destacat">8.75 €</td>
-                        <td class="llista-proveidors">Cobresol SA (8.50 €); Metalls BCN (9.00 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-312" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-312" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-418</td>
-                        <td>Polímer Reforçat Fibra</td>
-                        <td>PRF-418</td>
-                        <td>95</td>
-                        <td>kg</td>
-                        <td class="text-destacat">28.90 €</td>
-                        <td class="llista-proveidors">Poliplast SL (28.90 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-418" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-418" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-523</td>
-                        <td>Cautxú Sintètic</td>
-                        <td>CS-523</td>
-                        <td>210</td>
-                        <td>kg</td>
-                        <td class="text-destacat">12.40 €</td>
-                        <td class="llista-proveidors">Elastomers BCN (12.40 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-523" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-523" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-634</td>
-                        <td>Vidre Temperat</td>
-                        <td>VT-634</td>
-                        <td>85</td>
-                        <td>m²</td>
-                        <td class="text-destacat">45.00 €</td>
-                        <td class="llista-proveidors">Vidres Industrials (45.00 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-634" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-634" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-741</td>
-                        <td>Acer Carboní 1045</td>
-                        <td>AC1045-07</td>
-                        <td>520</td>
-                        <td>kg</td>
-                        <td class="text-destacat">3.20 €</td>
-                        <td class="llista-proveidors">Acersa SA (3.15 €); Siderúrgia CAT (3.25 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-741" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-741" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-852</td>
-                        <td>Lubricant Industrial</td>
-                        <td>LUB-IND-852</td>
-                        <td>340</td>
-                        <td>L</td>
-                        <td class="text-destacat">18.60 €</td>
-                        <td class="llista-proveidors">Química Total (18.60 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-852" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-852" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-963</td>
-                        <td>Plàstic ABS Alta Resistència</td>
-                        <td>ABS-963</td>
-                        <td>410</td>
-                        <td>kg</td>
-                        <td class="text-destacat">5.80 €</td>
-                        <td class="llista-proveidors">Plastics Global (5.70 €); Politech SL (5.90 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-963" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-963" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-974</td>
-                        <td>Filferro d'Acer Galvanitzat</td>
-                        <td>FG-974</td>
-                        <td>275</td>
-                        <td>kg</td>
-                        <td class="text-destacat">2.45 €</td>
-                        <td class="llista-proveidors">Metalls BCN (2.40 €); AcerGalv SA (2.50 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-974" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-974" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-985</td>
-                        <td>Oli Hidràulic 46</td>
-                        <td>OH-985</td>
-                        <td>600</td>
-                        <td>L</td>
-                        <td class="text-destacat">4.60 €</td>
-                        <td class="llista-proveidors">Lubricants Delta (4.55 €); QuimOil SL (4.65 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-985" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-985" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-996</td>
-                        <td>Pintura Epoxi Industrial</td>
-                        <td>PE-996</td>
-                        <td>150</td>
-                        <td>L</td>
-                        <td class="text-destacat">19.90 €</td>
-                        <td class="llista-proveidors">Pintures Catalanes (19.80 €); Colorind SA (20.00 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-996" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-996" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-1007</td>
-                        <td>Sílici Metalúrgic 99%</td>
-                        <td>SM-1007</td>
-                        <td>95</td>
-                        <td>kg</td>
-                        <td class="text-destacat">32.50 €</td>
-                        <td class="llista-proveidors">Silicate Iberia (32.40 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-1007" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-1007" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-1018</td>
-                        <td>Fibra de Carboní Teixida</td>
-                        <td>FC-1018</td>
-                        <td>70</td>
-                        <td>m²</td>
-                        <td class="text-destacat">120.00 €</td>
-                        <td class="llista-proveidors">Composites BCN (119.50 €); CarbonFiber SA (120.50 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-1018" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-1018" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CMP-1029</td>
-                        <td>Cinta Aïllant Alta Temperatura</td>
-                        <td>CA-1029</td>
-                        <td>500</td>
-                        <td>rotlles</td>
-                        <td class="text-destacat">1.80 €</td>
-                        <td class="llista-proveidors">Insutape SL (1.75 €); TermoWrap SA (1.85 €)</td>
-                        <td class="accions-cel">
-                            <a href="editar-component.jsp?codi=CMP-1029" class="boto-icona">✏️</a>
-                            <a href="esborrar-component.jsp?codi=CMP-1029" class="boto-icona boto-esborrar">🗑️</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="paginacio">
-            <a href="#" class="pagina-enllac actiu">1</a>
-            <a href="#" class="pagina-enllac">2</a>
-            <a href="#" class="pagina-enllac">3</a>
-            <a href="#" class="pagina-enllac">4</a>
-            <a href="#" class="pagina-enllac">5</a>
-            <span>...</span>
-            <a href="#" class="pagina-enllac">Final</a>
+            <c:choose>
+                <c:when test="${empty components}">
+                    <p class="text-empty">No hi ha components per mostrar.</p>
+                </c:when>
+                
+                <c:otherwise>
+                    <table class="taula">
+                        <thead>
+                            <tr>
+                                <th>Codi</th>
+                                <th>Nom del Component</th>
+                                <th>Descripció</th>
+                                <th>Fabricant</th>
+                                <th>Unitat</th>
+                                <th>Stock</th>
+                                <th>Preu Mitjà</th>
+                                <th>Proveïdors</th>
+                                <th>Accions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="component" items="${components}">
+                                <tr>
+                                    <td><strong>${component.itCodi}</strong></td>
+                                    <td>${component.itNom}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty component.itDesc && component.itDesc.length() > 50}">
+                                                ${component.itDesc.substring(0, 50)}...
+                                            </c:when>
+                                            <c:otherwise>
+                                                ${component.itDesc}
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>${component.cmCodiFabricant}</td>
+                                    <td>${component.cmUmCodi}</td>
+                                    <td class="text-center">${component.itStock != null ? component.itStock : 0}</td>
+                                    <td class="text-preu-readonly">
+                                        <fmt:formatNumber value="${component.cmPreuMig}" type="currency" currencySymbol="€" minFractionDigits="2"/>
+                                        <span class="tooltip-icon" title="Preu calculat automàticament pels triggers Oracle">️<img src="media/info.svg" alt="Información" class="alert-icon">
+</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <!-- Link a gestió de proveïdors -->
+                                        <a href="ProveidorComponentServlet?component=${component.cmCodi}" 
+                                           class="link-proveidors" 
+                                           title="Gestionar proveïdors i preus">
+                                            <img src="media/money.svg" alt="media">
+                                        </a>
+                                    </td>
+                                    <td class="accions">
+                                        <!-- Botó editar -->
+                                        <a href="editar-component.jsp?codi=${component.cmCodi}" 
+                                           class="btn-icon btn-edit" 
+                                           title="Editar">
+                                           <img src="media/edit.svg" alt="editar">
+                                        </a>
+                                        
+                                        <!-- Botó eliminar -->
+                                        <form action="ComponentServlet" 
+                                              method="post" 
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Segur que vols eliminar aquest component?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="codiComponent" value="${component.cmCodi}">
+                                            <button type="submit" 
+                                                    class="btn-icon btn-delete" 
+                                                    title="Eliminar">
+                                                <img src="media/delete.svg">
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Resum -->
+                    <div class="taula-footer">
+                        <p>Total de components: <strong>${components.size()}</strong></p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </main>
+    
+    <style>
+        /* Estils per missatges */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .text-empty {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        /* Estil especial per preu readonly */
+        .text-preu-readonly {
+            background-color: #f0f0f0;
+            color: #666;
+            font-weight: bold;
+            text-align: right;
+            padding-right: 10px;
+            position: relative;
+        }
+        
+        .tooltip-icon {
+            font-size: 0.8em;
+            cursor: help;
+            margin-left: 5px;
+        }
+        
+        .accions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px;
+            text-decoration: none;
+        }
+        
+        .btn-edit:hover {
+            transform: scale(1.2);
+        }
+        
+        .btn-delete {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        
+        .btn-delete:hover {
+            transform: scale(1.2);
+        }
+        
+        .link-proveidors {
+            font-size: 1.5em;
+            text-decoration: none;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        
+        .link-proveidors:hover {
+            transform: scale(1.3);
+        }
+        
+        .taula-footer {
+            margin-top: 15px;
+            text-align: right;
+            color: #666;
+        }
+    </style>
 </body>
 </html>
