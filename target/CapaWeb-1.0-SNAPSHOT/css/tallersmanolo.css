@@ -7,6 +7,7 @@
 }
 
 :root {
+    /* Paleta Cromàtica */
     --color-fosc-primari: #1a365d;
     --color-mig-primari: #2c5282;
     --color-secundari: #4a5568;
@@ -14,6 +15,7 @@
     --color-blanc: #ffffff;
     --color-negre: #000000;
     
+    /* Tipografies */
     --font-titols: 'Inter', sans-serif;
     --font-cos: 'Roboto', sans-serif;
 }
@@ -29,6 +31,7 @@ h1, h2, h3 {
     font-family: var(--font-titols);
 }
 
+/* Inter Bold #1a365d per als títols */
 h1 {
     font-weight: 700;
     color: var(--color-fosc-primari);
@@ -36,6 +39,7 @@ h1 {
     margin-bottom: 1.5rem;
 }
 
+/* Inter Semibold #2c5282 per als subtítols */
 h2 {
     font-weight: 600;
     color: var(--color-mig-primari);
@@ -49,12 +53,14 @@ h3 {
     font-size: 1.2rem;
 }
 
+/* Roboto Regular #000000 per als textos normals */
 p, td, th, input, select, textarea {
     font-family: var(--font-cos);
     font-weight: 400;
     color: var(--color-negre);
 }
 
+/* Roboto Medium #0066cc per fer destacats */
 a {
     color: var(--color-accent);
     text-decoration: none;
@@ -63,6 +69,13 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+/* Roboto Bold #000000 com alternativa per negretes */
+strong, b, .negreta {
+    font-family: var(--font-cos);
+    font-weight: 700;
+    color: var(--color-negre);
 }
 
 .capsalera {
@@ -195,7 +208,6 @@ a:hover {
 }
 
 .contenidor-taula {
-.contenidor-taula {
     overflow-x: auto;
     background: var(--color-blanc);
     border: 1px solid var(--color-secundari);
@@ -284,11 +296,13 @@ a:hover {
     margin-bottom: 1.5rem;
 }
 
+/* Inter Semibold #2c5282 per etiquetes */
 .etiqueta {
     display: block;
-    font-weight: 500;
+    font-family: var(--font-titols);
+    font-weight: 600;
     margin-bottom: 0.5rem;
-    color: var(--color-fosc-primari);
+    color: var(--color-mig-primari);
 }
 
 .camp {
@@ -339,6 +353,7 @@ a:hover {
     margin-bottom: 1.5rem;
 }
 
+/* Inter Semibold #2c5282 per llegendes */
 .llegenda {
     font-family: var(--font-titols);
     font-weight: 600;
@@ -346,6 +361,7 @@ a:hover {
     padding: 0 0.5rem;
 }
 
+/* Roboto Medium #0066cc per destacats */
 .text-destacat {
     color: var(--color-accent);
     font-weight: 500;

@@ -53,6 +53,7 @@
                                    id="estocInicial" 
                                    name="estocInicial" 
                                    class="camp" 
+                                   placeholder="0"
                                    min="0" 
                                    value="0">
                         </div>
@@ -64,6 +65,7 @@
                                id="nomProducte" 
                                name="nomProducte" 
                                class="camp" 
+                               placeholder="Nom descriptiu del producte"
                                maxlength="100" 
                                required>
                     </div>
@@ -73,6 +75,7 @@
                         <textarea id="descripcioProducte" 
                                   name="descripcioProducte" 
                                   class="camp textarea" 
+                                  placeholder="Descripció detallada del producte..."
                                   rows="5"></textarea>
                     </div>
                 </fieldset>
@@ -84,5 +87,124 @@
             </form>
         </div>
     </main>
+    
+    <style>
+        /* ESTILOS INLINE - Paleta Corporativa Tallers Manolo */
+        
+        .formulari-contenidor {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(26, 54, 93, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .fieldset {
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .llegenda {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: #2c5282;
+            padding: 0 10px;
+        }
+        
+        .fila-camps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .grup-camp {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .etiqueta {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c5282;
+        }
+        
+        .camp {
+            padding: 10px;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+            color: #000000;
+        }
+        
+        .camp::placeholder {
+            color: #4a5568;
+            opacity: 0.6;
+        }
+        
+        .camp:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+        
+        .camp[readonly] {
+            background-color: #f5f5f5;
+            color: #4a5568;
+            cursor: not-allowed;
+        }
+        
+        .textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .grup-botons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #4a5568;
+        }
+        
+        .boto {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .boto-primari {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        
+        .boto-primari:hover {
+            background-color: #1a365d;
+        }
+        
+        .boto-secundari {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+        }
+        
+        .boto-secundari:hover {
+            background-color: #4a5568;
+            color: #ffffff;
+            border-color: #4a5568;
+        }
+    </style>
 </body>
 </html>

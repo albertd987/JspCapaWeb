@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.util.List;
 
 import dao.DAOFactory;
+import dao.IDAOProdItem;
 import dao.IDAOProducte;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.ProdItem;
 import model.Producte;
 
 /**
@@ -194,7 +196,7 @@ public class ProducteServlet extends HttpServlet {
             if (exit) {
                 log("Producte creat: " + codi);
                 
-                // 🔍 VALIDACIÓ DE COMPONENTS (NOU en v1.1)
+                //VALIDACIÓ DE COMPONENTS (NOU en v1.1)
                 boolean teComponents = daoProducte.teComponents(codi.trim());
                 
                 if (teComponents) {
@@ -203,13 +205,13 @@ public class ProducteServlet extends HttpServlet {
                     doGet(request, response);
                 } else {
                     // Cas normal: producte sense components → redirigir a afegir components
-                    log("⚠️ Producte " + codi + " sense components. Redirigint a afegir-components.jsp");
+                    log("Producte " + codi + " sense components. Redirigint a afegir-components.jsp");
                     response.sendRedirect("ComponentProducteServlet?producte=" + codi.trim() + 
                                         "&nouProducte=true");
                 }
                 
             } else {
-                log("❌ No s'ha pogut crear el producte: " + codi);
+                log("No s'ha pogut crear el producte: " + codi);
                 request.setAttribute("error", "No s'ha pogut crear el producte");
                 doGet(request, response);
             }
@@ -282,8 +284,11 @@ public class ProducteServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    /**
+/**
      * Gestiona l'eliminació d'un producte
+     * 
+     * IMPORTANT: Abans d'eliminar el producte, cal eliminar les seves relacions
+     * a Prod_Item per evitar error de Foreign Key constraint
      */
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -297,10 +302,28 @@ public class ProducteServlet extends HttpServlet {
         }
 
         try {
+            // 1️⃣ PRIMER: Eliminar components associats (Prod_Item)
+            log("Eliminant components del producte: " + codi);
+            IDAOProdItem daoProdItem = DAOFactory.getDAOProdItem();
+            List<ProdItem> items = daoProdItem.getItemsDelProducte(codi.trim());
+            
+            for (ProdItem item : items) {
+                boolean eliminatItem = daoProdItem.eliminar(item.getPiPrCodi(), item.getPiItCodi());
+                if (eliminatItem) {
+                    log(" Component eliminat: " + item.getPiItCodi());
+                } else {
+                    log(" No s'ha pogut eliminar component: " + item.getPiItCodi());
+                }
+            }
+            
+            log("✓ Tots els components eliminats (" + items.size() + ")");
+
+            // 2️⃣ DESPRÉS: Eliminar el producte
+            log("🗑️ Eliminant producte: " + codi);
             boolean exit = daoProducte.eliminar(codi.trim());
 
             if (exit) {
-                log("Producte eliminat: " + codi);
+                log("✅ Producte eliminat: " + codi);
                 request.setAttribute("success", "Producte eliminat correctament");
             } else {
                 log("No s'ha pogut eliminar el producte: " + codi);
@@ -309,13 +332,13 @@ public class ProducteServlet extends HttpServlet {
 
         } catch (Exception e) {
             log("Error eliminant producte: " + e.getMessage());
+            e.printStackTrace();
             request.setAttribute("error", "Error eliminant producte: " + e.getMessage());
         }
 
         // Recarregar llista
         doGet(request, response);
     }
-
     @Override
     public String getServletInfo() {
         return "Servlet per gestionar operacions CRUD de Productes";
