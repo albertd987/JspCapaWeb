@@ -1,0 +1,330 @@
+/**
+ * bom-tree.css - Estils per l'arbre jeràrquic del BOM
+ * 
+ * @author Tallers Manolo
+ * @version 1.0
+ */
+
+/* ====================================
+   MODAL DEL BOM TREE
+   ==================================== */
+
+#bomTreeModal .modal-dialog {
+    max-width: 900px;
+}
+
+#bomTreeModal .modal-body {
+    padding: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#bomTreeModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none;
+}
+
+#bomTreeModal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* ====================================
+   CONTENIDOR DE L'ARBRE
+   ==================================== */
+
+#bomTreeContainer {
+    padding: 20px;
+    min-height: 400px;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Loading spinner */
+.bom-loading {
+    padding: 60px 0;
+}
+
+.bom-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ====================================
+   BARRA DE CERCA
+   ==================================== */
+
+.bom-search-bar {
+    background-color: white;
+    padding: 15px;
+    border-bottom: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bom-search-bar input {
+    flex: 1;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.bom-search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.bom-search-bar .btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.bom-search-bar button {
+    padding: 8px 15px;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.bom-search-bar button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* ====================================
+   PERSONALITZACIÓ JSTREE
+   ==================================== */
+
+/* Arbre general */
+.jstree-default {
+    font-size: 14px;
+    line-height: 24px;
+}
+
+/* Nodes de l'arbre */
+.jstree-default .jstree-node {
+    margin-left: 24px;
+    min-height: 32px;
+}
+
+/* Anchor (enllaç del node) */
+.jstree-default .jstree-anchor {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.jstree-default .jstree-anchor:hover {
+    background-color: #e7f1ff;
+    text-decoration: none;
+}
+
+/* Node seleccionat */
+.jstree-default .jstree-clicked {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Icones de l'arbre */
+.jstree-default .jstree-icon {
+    font-size: 16px;
+}
+
+/* Icona de expand/collapse */
+.jstree-default .jstree-ocl {
+    background-position: -132px -4px;
+}
+
+/* Node obert */
+.jstree-default .jstree-open > .jstree-ocl {
+    background-position: -164px -4px;
+}
+
+/* Node tancat */
+.jstree-default .jstree-closed > .jstree-ocl {
+    background-position: -132px -4px;
+}
+
+/* ====================================
+   ESTIL DELS NODES SEGONS TIPUS
+   ==================================== */
+
+/* Node arrel (producte principal) */
+.jstree-default li[id]:first-child > .jstree-anchor {
+    font-weight: bold;
+    font-size: 16px;
+    color: #667eea;
+    background-color: #f0f4ff;
+    border-left: 4px solid #667eea;
+    padding-left: 12px;
+}
+
+/* Components (nodes fills) */
+.jstree-default .jstree-anchor .text-muted {
+    color: #6c757d;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Destacar quantitats */
+.jstree-default .jstree-anchor strong {
+    color: #212529;
+}
+
+/* ====================================
+   RESULTATS DE CERCA
+   ==================================== */
+
+.jstree-default .jstree-search {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    font-weight: bold;
+}
+
+/* ====================================
+   CONNEXIONS (LINIES) DE L'ARBRE
+   ==================================== */
+
+.jstree-default .jstree-wholerow {
+    height: 32px;
+}
+
+.jstree-default .jstree-wholerow-hovered {
+    background: #f0f4ff;
+}
+
+/* ====================================
+   RESPONSIVE
+   ==================================== */
+
+@media (max-width: 768px) {
+    #bomTreeModal .modal-dialog {
+        max-width: 95%;
+        margin: 10px auto;
+    }
+    
+    #bomTreeContainer {
+        padding: 10px;
+    }
+    
+    .bom-search-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .bom-search-bar .btn-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .jstree-default {
+        font-size: 12px;
+    }
+}
+
+/* ====================================
+   ANIMACIONS
+   ==================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#bomTreeContainer.loaded {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ====================================
+   ESTATS D'ERROR
+   ==================================== */
+
+.bom-error {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.bom-error i {
+    font-size: 48px;
+    color: #dc3545;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* ====================================
+   UTILITATS
+   ==================================== */
+
+.bom-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 10px;
+    background-color: #667eea;
+    color: white;
+    margin-left: 8px;
+}
+
+.bom-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.bom-tooltip .tooltiptext {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+}
+
+.bom-tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ====================================
+   PRINT STYLES
+   ==================================== */
+
+@media print {
+    #bomTreeModal .modal-header,
+    #bomTreeModal .modal-footer,
+    .bom-search-bar {
+        display: none !important;
+    }
+    
+    #bomTreeContainer {
+        background-color: white;
+        padding: 0;
+    }
+    
+    .jstree-default .jstree-node {
+        margin-left: 20px;
+    }
+}

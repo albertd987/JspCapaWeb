@@ -6,3 +6,4 @@ controller\ComponentProducteServlet.class
 controller\ProveidorComponentServlet.class
 controller\ComponentServlet.class
 com\mycompany\capaweb\JakartaRestConfiguration.class
+controller\ArbreBOMServlet.class
