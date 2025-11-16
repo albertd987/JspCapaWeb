@@ -5,6 +5,7 @@ import java.util.List;
 
 import dao.DAOFactory;
 import dao.IDAOComponent;
+import dao.IDAOProdItem;
 import dao.IDAOUnitatMesura;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Component;
+import model.ProdItem;
 import model.UnitatMesura;
 
 /**
@@ -276,37 +278,87 @@ public class ComponentServlet extends HttpServlet {
     /**
      * Gestiona l'eliminació d'un component
      */
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        String codi = request.getParameter("codiComponent");
+private void handleDelete(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    
+    String codi = request.getParameter("codiComponent");
 
-        if (codi == null || codi.trim().isEmpty()) {
-            request.setAttribute("error", "Codi de component requerit per eliminar");
+    if (codi == null || codi.trim().isEmpty()) {
+        request.setAttribute("error", "Codi de component requerit per eliminar");
+        doGet(request, response);
+        return;
+    }
+
+    try {
+        // ========================================
+        // VALIDACIÓ: Verificar si està sent usat en productes
+        // ========================================
+        log("Verificant si " + codi + " està sent usat en productes...");
+        
+        IDAOProdItem daoProdItem = DAOFactory.getDAOProdItem();
+        List<ProdItem> productesQueElUsen = daoProdItem.getProductesQueUsenItem(codi.trim());
+        
+        if (!productesQueElUsen.isEmpty()) {
+            // ❌ El component està sent usat en productes
+            log("⚠️ No es pot eliminar " + codi + " - està sent usat en " + 
+                productesQueElUsen.size() + " producte(s)");
+            
+            // Construir missatge d'error detallat
+            StringBuilder missatge = new StringBuilder();
+            missatge.append("No pots eliminar el component ").append(codi)
+                    .append(" perquè està sent usat en ").append(productesQueElUsen.size())
+                    .append(" producte(s):\n\n");
+            
+            // Llistar fins a 10 productes (per no fer el missatge massa llarg)
+            int maxMostrar = Math.min(10, productesQueElUsen.size());
+            for (int i = 0; i < maxMostrar; i++) {
+                ProdItem uso = productesQueElUsen.get(i);
+                missatge.append("• ").append(uso.getPiPrCodi())
+                        .append(" (quantitat: ").append(uso.getQuantitat()).append(")\n");
+            }
+            
+            if (productesQueElUsen.size() > 10) {
+                missatge.append("... i ").append(productesQueElUsen.size() - 10)
+                        .append(" productes més\n");
+            }
+            
+            missatge.append("\n Per eliminar aquest component:\n")
+                    .append("1. Ves a la llista de Productes\n")
+                    .append("2. Utilitza el botó 'Gestionar Components' de cada producte\n")
+                    .append("3. Elimina ").append(codi).append(" de cada producte\n")
+                    .append("4. Després podràs eliminar el component");
+            
+            request.setAttribute("error", missatge.toString());
             doGet(request, response);
             return;
         }
+        
+        log( codi + " NO està sent usat en cap producte");
+        
+        // ========================================
+        // ELIMINACIÓ: El component NO està sent usat
+        // ========================================
+        
+        log(" Eliminant component: " + codi);
+        boolean exit = daoComponent.eliminar(codi.trim());
 
-        try {
-            boolean exit = daoComponent.eliminar(codi.trim());
-
-            if (exit) {
-                log("Component eliminat: " + codi);
-                request.setAttribute("success", "Component eliminat correctament");
-            } else {
-                log("No s'ha pogut eliminar el component: " + codi);
-                request.setAttribute("error", "No s'ha pogut eliminar el component");
-            }
-
-        } catch (Exception e) {
-            log("Error eliminant component: " + e.getMessage());
-            request.setAttribute("error", "Error eliminant component: " + e.getMessage());
+        if (exit) {
+            log("Component eliminat correctament: " + codi);
+            request.setAttribute("success", "Component " + codi + " eliminat correctament");
+        } else {
+            log("No s'ha pogut eliminar el component: " + codi);
+            request.setAttribute("error", "No s'ha pogut eliminar el component");
         }
 
-        // Recarregar llista
-        doGet(request, response);
+    } catch (Exception e) {
+        log("Error eliminant component: " + e.getMessage());
+        e.printStackTrace();
+        request.setAttribute("error", "Error eliminant component: " + e.getMessage());
     }
 
+    // Recarregar llista
+    doGet(request, response);
+}
     @Override
     public String getServletInfo() {
         return "Servlet per gestionar operacions CRUD de Components";

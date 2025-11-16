@@ -35,17 +35,14 @@ import model.Producte;
 
 /**
  * Servlet per generar BOM (Bill of Materials) en format PDF
- * 
- * Responsabilitats:
- * - Generar PDF amb la llista de materials d'un producte
- * - Incloure informació de components amb quantitats i preus
- * - Calcular preu total del producte
- * 
- * Format PDF:
- * - Header: Informació producte + data
- * - Taula: Components amb codi, nom, UM, quantitat, preu unitari, subtotal
- * - Footer: Preu total
- * 
+ *
+ * Responsabilitats: - Generar PDF amb la llista de materials d'un producte -
+ * Incloure informació de components amb quantitats i preus - Calcular preu
+ * total del producte
+ *
+ * Format PDF: - Header: Informació producte + data - Taula: Components amb
+ * codi, nom, UM, quantitat, preu unitari, subtotal - Footer: Preu total
+ *
  * @author DomenechObiolAlbert
  * @version 1.0
  */
@@ -73,45 +70,44 @@ public class BOMServlet extends HttpServlet {
 
     /**
      * Gestiona peticions GET: genera PDF del BOM
-     * 
-     * Paràmetres requerits:
-     * - codi: Codi del producte
+     *
+     * Paràmetres requerits: - codi: Codi del producte
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String codiProducte = request.getParameter("codi");
-        
+
         if (codiProducte == null || codiProducte.trim().isEmpty()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                "Paràmetre 'codi' requerit");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Paràmetre 'codi' requerit");
             return;
         }
 
         try {
             // 1. Buscar producte
             Producte producte = daoProducte.findById(codiProducte.trim());
-            
+
             if (producte == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, 
-                    "Producte no trobat: " + codiProducte);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "Producte no trobat: " + codiProducte);
                 return;
             }
 
             // 2. Obtenir components del producte
             List<ProdItem> items = daoProdItem.getItemsDelProducte(codiProducte.trim());
-            
+
             if (items == null || items.isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                    "El producte no té components definits");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                        "El producte no té components definits");
                 return;
             }
 
             // 3. Configurar resposta HTTP per PDF
             response.setContentType("application/pdf");
-            response.setHeader("Content-Disposition", 
-                "inline; filename=BOM_" + codiProducte + ".pdf");
+            response.setHeader("Content-Disposition",
+                    "inline; filename=BOM_" + codiProducte + ".pdf");
 
             // 4. Generar PDF
             generateBOMPDF(response.getOutputStream(), producte, items);
@@ -121,30 +117,29 @@ public class BOMServlet extends HttpServlet {
         } catch (Exception e) {
             log("❌ Error generant BOM: " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
-                "Error generant BOM: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Error generant BOM: " + e.getMessage());
         }
     }
 
     /**
      * Genera el PDF del BOM
      */
-    private void generateBOMPDF(OutputStream outputStream, Producte producte, List<ProdItem> items) 
+    private void generateBOMPDF(OutputStream outputStream, Producte producte, List<ProdItem> items)
             throws Exception {
-        
+
         // Crear document PDF
         PdfWriter writer = new PdfWriter(outputStream);
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document document = new Document(pdfDoc);
-        
+
         // Colors corporatius
         DeviceRgb colorPrimari = new DeviceRgb(0, 123, 255);
         DeviceRgb colorSecundari = new DeviceRgb(108, 117, 125);
-        
+
         // =======================
         // HEADER
         // =======================
-        
         // Logo/Títol empresa
         Paragraph titulo = new Paragraph("TALLERS MANOLO")
                 .setFontSize(24)
@@ -152,42 +147,41 @@ public class BOMServlet extends HttpServlet {
                 .setFontColor(colorPrimari)
                 .setTextAlignment(TextAlignment.CENTER);
         document.add(titulo);
-        
+
         Paragraph subtitulo = new Paragraph("Bill of Materials (BOM)")
                 .setFontSize(16)
                 .setFontColor(colorSecundari)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(20);
         document.add(subtitulo);
-        
+
         // Informació del producte
         Table infoTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
                 .setWidth(UnitValue.createPercentValue(100))
                 .setMarginBottom(20);
-        
+
         addInfoRow(infoTable, "Codi Producte:", producte.getPrCodi(), colorPrimari);
         addInfoRow(infoTable, "Nom:", producte.getItNom(), colorPrimari);
         addInfoRow(infoTable, "Descripció:", producte.getItDesc() != null ? producte.getItDesc() : "-", colorPrimari);
         addInfoRow(infoTable, "Data Generació:", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), colorPrimari);
-        
+
         document.add(infoTable);
-        
+
         // =======================
         // TAULA DE COMPONENTS
         // =======================
-        
         Paragraph componentesTitle = new Paragraph("Components")
                 .setFontSize(14)
                 .setBold()
                 .setMarginTop(10)
                 .setMarginBottom(10);
         document.add(componentesTitle);
-        
+
         // Taula amb 6 columnes
         Table componentTable = new Table(UnitValue.createPercentArray(
                 new float[]{15, 30, 10, 10, 15, 20}))
                 .setWidth(UnitValue.createPercentValue(100));
-        
+
         // Header de la taula
         String[] headers = {"Codi", "Nom Component", "UM", "Quantitat", "Preu Unit.", "Subtotal"};
         for (String header : headers) {
@@ -198,37 +192,43 @@ public class BOMServlet extends HttpServlet {
                     .setPadding(8);
             componentTable.addHeaderCell(cell);
         }
-        
+
         // Dades dels components
         double preuTotal = 0.0;
-        
+
         for (ProdItem pi : items) {
             // Obtenir informació del component
             Item item = daoItem.findById(pi.getPiItCodi());
-            
+
             if (item == null) {
                 log("⚠️ Item no trobat: " + pi.getPiItCodi());
                 continue;
             }
-            
+
             String nom = item.getItNom();
             String um = "-";
             double preuUnitari = 0.0;
-            
+
             // Si és component, obtenir unitat mesura i preu
             if ("C".equals(item.getItTipus())) {
+                // COMPONENT: obtenir preu mitjà i unitat de mesura
                 Component component = daoComponent.findById(item.getItCodi());
                 if (component != null) {
                     um = component.getCmUmCodi();
-                    preuUnitari = component.getCmPreuMig() != null ? component.getCmPreuMig() : 0.0;
+                    preuUnitari = component.getCmPreuMig() != null
+                            ? component.getCmPreuMig() : 0.0;
                 }
+            } else if ("P".equals(item.getItTipus())) {
+                // PRODUCTE: calcular cost recursivament via DAO
+                // (usa funció Oracle GET_COST_PRODUCTE)
+                preuUnitari = daoItem.calcularCostItem(item.getItCodi());
             }
-            
+
             // Calcular subtotal
             int quantitat = pi.getQuantitat() != null ? pi.getQuantitat() : 0;
             double subtotal = preuUnitari * quantitat;
             preuTotal += subtotal;
-            
+
             // Afegir fila
             componentTable.addCell(createCell(item.getItCodi(), TextAlignment.LEFT));
             componentTable.addCell(createCell(nom, TextAlignment.LEFT));
@@ -237,23 +237,22 @@ public class BOMServlet extends HttpServlet {
             componentTable.addCell(createCell(String.format("%.2f €", preuUnitari), TextAlignment.RIGHT));
             componentTable.addCell(createCell(String.format("%.2f €", subtotal), TextAlignment.RIGHT));
         }
-        
+
         document.add(componentTable);
-        
+
         // =======================
         // FOOTER - PREU TOTAL
         // =======================
-        
         Table totalTable = new Table(UnitValue.createPercentArray(new float[]{80, 20}))
                 .setWidth(UnitValue.createPercentValue(100))
                 .setMarginTop(20);
-        
+
         Cell labelCell = new Cell()
                 .add(new Paragraph("PREU TOTAL").setBold().setFontSize(14))
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBorder(Border.NO_BORDER)
                 .setPadding(5);
-        
+
         Cell preuCell = new Cell()
                 .add(new Paragraph(String.format("%.2f €", preuTotal))
                         .setBold()
@@ -262,23 +261,22 @@ public class BOMServlet extends HttpServlet {
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setBackgroundColor(new DeviceRgb(240, 240, 240))
                 .setPadding(10);
-        
+
         totalTable.addCell(labelCell);
         totalTable.addCell(preuCell);
-        
+
         document.add(totalTable);
-        
+
         // =======================
         // FOOTER - INFORMACIÓ ADICIONAL
         // =======================
-        
         Paragraph footer = new Paragraph("Yeaaaah funciona!!")
                 .setFontSize(8)
                 .setFontColor(colorSecundari)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginTop(30);
         document.add(footer);
-        
+
         // Tancar document
         document.close();
     }
@@ -291,12 +289,12 @@ public class BOMServlet extends HttpServlet {
                 .add(new Paragraph(label).setBold().setFontColor(color))
                 .setBorder(Border.NO_BORDER)
                 .setPadding(5);
-        
+
         Cell valueCell = new Cell()
                 .add(new Paragraph(value))
                 .setBorder(Border.NO_BORDER)
                 .setPadding(5);
-        
+
         table.addCell(labelCell);
         table.addCell(valueCell);
     }

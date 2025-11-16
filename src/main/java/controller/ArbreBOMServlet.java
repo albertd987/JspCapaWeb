@@ -68,10 +68,10 @@ public class ArbreBOMServlet extends HttpServlet {
         // Generar arbre
         Item itemRoot = daoItem.findById(prCodi);
         if (itemRoot != null) {
-            out.println("<h2>🌳 Arbre BOM: " + itemRoot.getItNom() + "</h2>");
+            out.println("<h2><img src=\"media/tree.svg\">️ Arbre BOM: " + itemRoot.getItNom() + "</h2>");
             generarArbreHTML(out, prCodi, 0);
         } else {
-            out.println("<h2>❌ Producte no trobat</h2>");
+            out.println("<h2>Producte no trobat</h2>");
         }
         
         // JavaScript per expand/collapse
@@ -84,10 +84,10 @@ public class ArbreBOMServlet extends HttpServlet {
         out.println("      if (ul && ul.tagName === 'UL') {");
         out.println("        if (ul.style.display === 'none') {");
         out.println("          ul.style.display = 'block';");
-        out.println("          this.innerHTML = this.innerHTML.replace('▶', '▼');");
+        out.println("          this.innerHTML = this.innerHTML.replace('<img src=\"media/right_arrow.svg\">️', '<img src=\"media/down_arrow.svg\">️');");
         out.println("        } else {");
         out.println("          ul.style.display = 'none';");
-        out.println("          this.innerHTML = this.innerHTML.replace('▼', '▶');");
+        out.println("          this.innerHTML = this.innerHTML.replace('<img src=\"media/down_arrow.svg\">️', '<img src=\"media/right_arrow.svg\">️');");
         out.println("        }");
         out.println("      }");
         out.println("    });");
@@ -115,7 +115,7 @@ public class ArbreBOMServlet extends HttpServlet {
             // Node arrel
             out.println("<ul>");
             if (!fills.isEmpty()) {
-                out.println("<li><span class='toggle'>▼ <span class='producte'>" + codi + ": " + item.getItNom() + "</span></span>");
+                out.println("<li><span class='toggle'><img src=\"media/down_arrow.svg\">️ <span class='producte'>" + codi + ": " + item.getItNom() + "</span></span>");
                 out.println("<ul>");
                 for (ProdItem pi : fills) {
                     generarArbreHTML(out, pi.getPiItCodi(), nivel + 1);
@@ -130,7 +130,7 @@ public class ArbreBOMServlet extends HttpServlet {
             // Nodes fills
             if (!fills.isEmpty()) {
                 // És un producte amb fills
-                out.println("<li><span class='toggle'>▶ <span class='producte'>" + codi + ": " + item.getItNom() + "</span></span>");
+                out.println("<li><span class='toggle'><img src=\"media/right_arrow.svg\">️<span class='producte'>" + codi + ": " + item.getItNom() + "</span></span>");
                 out.println("<ul style='display:none'>");
                 for (ProdItem pi : fills) {
                     generarArbreHTML(out, pi.getPiItCodi(), nivel + 1);
@@ -139,7 +139,7 @@ public class ArbreBOMServlet extends HttpServlet {
                 out.println("</li>");
             } else {
                 // És un component (fulla)
-                out.println("<li><span class='component'>📦 " + codi + ": " + item.getItNom() + "</span></li>");
+                out.println("<li><span class='component'><img src=\"media/package.svg\">️ " + codi + ": " + item.getItNom() + "</span></li>");
             }
         }
     }

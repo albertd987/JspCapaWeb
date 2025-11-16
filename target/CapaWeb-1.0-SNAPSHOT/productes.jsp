@@ -104,6 +104,15 @@
                                             </a>
                                         </td>
                                         <td class="accions">
+                                            <!-- ============================================ -->
+                                            <!-- NUEVO: Botó Gestionar Components            -->
+                                            <!-- ============================================ -->
+                                            <a href="ComponentProducteServlet?producte=${producte.prCodi}" 
+                                               class="btn-icon btn-components" 
+                                               title="Gestionar Components">
+                                                🔧
+                                            </a>
+
                                             <!-- Editar -->
                                             <a href="editar-producte.jsp?codi=${producte.prCodi}" 
                                                class="btn-icon btn-edit" 
@@ -147,6 +156,7 @@
                 margin-bottom: 20px;
                 border-radius: 4px;
                 font-weight: 500;
+                white-space: pre-wrap; /* NUEVO: Para que los saltos de línea funcionen */
             }
 
             .alert-success {
@@ -172,6 +182,7 @@
                 display: flex;
                 gap: 10px;
                 justify-content: center;
+                align-items: center; /* NUEVO: Para alinear verticalmente */
             }
 
             .btn-icon {
@@ -195,6 +206,30 @@
 
             .btn-delete:hover {
                 transform: scale(1.2);
+            }
+
+            /* ============================================ */
+            /* NUEVO: Estilos para el botón de components  */
+            /* ============================================ */
+            .btn-components {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+                text-decoration: none;
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+                cursor: pointer;
+            }
+            
+            .btn-components:hover {
+                background-color: #007bff;
+                transform: scale(1.1);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
 
             .link-bom {

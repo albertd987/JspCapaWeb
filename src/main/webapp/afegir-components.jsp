@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Afegir Components - Tallers Manolo</title>
+    <title>Gestionar Components - Tallers Manolo</title>
     <link rel="stylesheet" href="css/tallersmanolo.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,14 +21,31 @@
     </header>
 
     <main class="contenidor">
-        <h1>Afegir components al producte ${producte.prCodi}</h1>
+        <!-- Títol dinàmic segons mode -->
+        <h1>
+            <c:choose>
+                <c:when test="${esNouProducte}">
+                    Afegir components al nou producte ${producte.prCodi}
+                </c:when>
+                <c:otherwise>
+                    Gestionar components del producte ${producte.prCodi}
+                </c:otherwise>
+            </c:choose>
+        </h1>
         
         <!-- Missatge informatiu si és producte nou -->
-        <c:if test="${param.nouProducte == 'true'}">
+        <c:if test="${esNouProducte}">
             <div class="alert alert-info">
                 <img src="media/warning.svg" alt="Informació" class="alert-icon">
-️ <strong>Producte creat correctament.</strong> 
+                ℹ️ <strong>Producte creat correctament.</strong> 
                 Afegeix almenys 1 component per completar-lo.
+            </div>
+        </c:if>
+        
+        <!-- Missatge informatiu per mode edició -->
+        <c:if test="${not esNouProducte}">
+            <div class="alert alert-info">
+                ℹ️ <strong>Mode d'edició:</strong> Pots afegir o eliminar components d'aquest producte. Els canvis es guarden automàticament.
             </div>
         </c:if>
         
@@ -71,28 +88,42 @@
             </fieldset>
         </div>
 
-        <!-- Formulari per afegir component -->
+        <!-- Formulari per afegir component o subproducte -->
         <div class="formulari-contenidor">
             <form method="post" action="ComponentProducteServlet">
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="producte" value="${producte.prCodi}">
                 
                 <fieldset class="fieldset">
-                    <legend class="llegenda">Afegir component</legend>
+                    <legend class="llegenda">Afegir component o subproducte</legend>
                     
                     <div class="fila-camps">
+                        <!-- Dropdown amb COMPONENTS y SUBPRODUCTES -->
                         <div class="grup-camp" style="flex: 2;">
-                            <label class="etiqueta" for="component">COMPONENT *</label>
+                            <label class="etiqueta" for="component">COMPONENT / SUBPRODUCTE *</label>
                             <select id="component" 
                                     name="component" 
-                                    class="camp" 
+                                    class="camp"
                                     required>
-                                <option value="">Selecciona un component</option>
-                                <c:forEach var="comp" items="${componentsDisponibles}">
-                                    <option value="${comp.cmCodi}">
-                                        ${comp.cmCodi} - ${comp.itNom}
-                                    </option>
-                                </c:forEach>
+                                <option value="">Selecciona un ítem</option>
+                                
+                                <!-- Components primaris -->
+                                <optgroup label="Components Primaris">
+                                    <c:forEach var="comp" items="${componentsDisponibles}">
+                                        <option value="${comp.cmCodi}">
+                                            ${comp.cmCodi} - ${comp.itNom}
+                                        </option>
+                                    </c:forEach>
+                                </optgroup>
+                                
+                                <!-- Subproductes -->
+                                <optgroup label="Subproductes">
+                                    <c:forEach var="prod" items="${productesDisponibles}">
+                                        <option value="${prod.prCodi}">
+                                            ${prod.prCodi} - ${prod.itNom}
+                                        </option>
+                                    </c:forEach>
+                                </optgroup>
                             </select>
                         </div>
                         
@@ -102,7 +133,8 @@
                                    id="quantitat" 
                                    name="quantitat" 
                                    class="camp" 
-                                   min="1" 
+                                   min="0.01" 
+                                   step="0.01"
                                    value="1" 
                                    required>
                         </div>
@@ -110,7 +142,7 @@
                     
                     <div class="grup-botons">
                         <button type="submit" class="boto boto-secundari">
-                            AFEGIR COMPONENT
+                            ➕ AFEGIR ÍTEM
                         </button>
                     </div>
                 </fieldset>
@@ -119,13 +151,22 @@
 
         <!-- Taula de components afegits -->
         <div class="contenidor-taula">
-            <h2>Components afegits</h2>
+            <h2>Components i subproductes afegits</h2>
             
             <c:choose>
                 <c:when test="${empty componentsAfegits}">
-                    <p class="text-empty">
-                        No hi ha components afegits encara. 
-                        Afegeix almenys 1 component per poder finalitzar.
+                    <!-- Mensaje dinámico según modo -->
+                    <p class="missatge-buit">
+                        <c:choose>
+                            <c:when test="${esNouProducte}">
+                                📦 Aquest producte encara no té components.
+                                <br>Afegeix almenys 1 component per poder finalitzar.
+                            </c:when>
+                            <c:otherwise>
+                                📦 Aquest producte no té components actualment.
+                                <br>Pots afegir components o subproductes utilitzant el formulari de dalt.
+                            </c:otherwise>
+                        </c:choose>
                     </p>
                 </c:when>
                 
@@ -134,7 +175,7 @@
                         <thead>
                             <tr>
                                 <th>Codi</th>
-                                <th>Nom del Component</th>
+                                <th>Nom del Component / Subproducte</th>
                                 <th>Quantitat</th>
                                 <th>Accions</th>
                             </tr>
@@ -168,11 +209,22 @@
             </c:choose>
         </div>
 
-        <!-- Botons d'acció finals -->
+        <!-- Botons d'acció dinàmics segons mode -->
         <div class="barra-accions-final">
-            <a href="ProducteServlet" class="boto boto-secundari">
-                CANCEL·LAR
-            </a>
+            <c:choose>
+                <c:when test="${esNouProducte}">
+                    <!-- Modo NOU: Cancel·lar NO elimina el producte -->
+                    <a href="ProducteServlet" class="boto boto-secundari">
+                        CANCEL·LAR
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <!-- Modo EDICIÓ: Tornar a la llista -->
+                    <a href="ProducteServlet" class="boto boto-secundari">
+                        ⬅️ TORNAR
+                    </a>
+                </c:otherwise>
+            </c:choose>
             
             <form method="post" 
                   action="ComponentProducteServlet" 
@@ -182,10 +234,54 @@
                 <button type="submit" 
                         class="boto boto-primari"
                         ${empty componentsAfegits ? 'disabled' : ''}>
-                    FINALITZAR
+                    <c:choose>
+                        <c:when test="${esNouProducte}">
+                            ✅ FINALITZAR
+                        </c:when>
+                        <c:otherwise>
+                            💾 GUARDAR CANVIS
+                        </c:otherwise>
+                    </c:choose>
                 </button>
             </form>
         </div>
     </main>
+
+    <!-- Estils addicionals -->
+    <style>
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .missatge-buit {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        /* aparença d'optgroup */
+        optgroup {
+            font-weight: bold;
+            font-style: normal;
+            color: #333;
+        }
+        
+        option {
+            font-weight: normal;
+            padding: 5px;
+        }
+        
+        /* Efecte taula */
+        .taula tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
 </body>
 </html>

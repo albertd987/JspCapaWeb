@@ -166,7 +166,7 @@
         <% if (!esNou && component != null) { %>
         <!-- Nota informativa per mode edició -->
         <div class="nota-info">
-            <strong class="negreta">💡 Nota:</strong> Per modificar el preu mitjà, has de gestionar els proveïdors i els seus preus.
+            <strong class="negreta"><img src="media/lightbulb.svg" alt="Info">️ Nota:</strong> Per modificar el preu mitjà, has de gestionar els proveïdors i els seus preus.
             <a href="ProveidorComponentServlet?component=<%= component.getCmCodi() %>" class="text-destacat">
                 Gestionar proveïdors →
             </a>

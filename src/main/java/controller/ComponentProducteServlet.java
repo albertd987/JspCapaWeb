@@ -58,63 +58,89 @@ public class ComponentProducteServlet extends HttpServlet {
      * Paràmetres opcionals:
      * - nouProducte: "true" si és un producte acabat de crear
      */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        String codiProducte = request.getParameter("producte");
-        
-        if (codiProducte == null || codiProducte.trim().isEmpty()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, 
-                "Paràmetre 'producte' requerit");
-            return;
-        }
-
-        try {
-            // 1. Buscar producte
-            Producte producte = daoProducte.findById(codiProducte.trim());
-            
-            if (producte == null) {
-                request.setAttribute("error", "Producte no trobat: " + codiProducte);
-                request.getRequestDispatcher("/ProducteServlet").forward(request, response);
-                return;
-            }
-
-            // 2. Buscar components disponibles (només tipus 'C')
-            List<Component> componentsDisponibles = daoComponent.findAll();
-            
-            // 3. Buscar components ja afegits al producte
-            List<ProdItem> componentsAfegits = daoProdItem.getItemsDelProducte(codiProducte.trim());
-            
-            // 4. Enriquir ProdItem amb informació del component (nom)
-            for (ProdItem item : componentsAfegits) {
-                Component comp = daoComponent.findById(item.getPiItCodi());
-                if (comp != null) {
-                    // Afegim el nom com atribut temporal (si ProdItem no té aquest camp)
-                    // Alternativa: crear DTO o usar un Map
-                    request.setAttribute("nom_" + item.getPiItCodi(), comp.getItNom());
-                }
-            }
-
-            // 5. Passar dades a la JSP
-            request.setAttribute("producte", producte);
-            request.setAttribute("componentsDisponibles", componentsDisponibles);
-            request.setAttribute("componentsAfegits", componentsAfegits);
-            
-            log("Carregant afegir-components.jsp per producte: " + codiProducte + 
-                " (" + componentsAfegits.size() + " components afegits)");
-            
-            // 6. Forward a la JSP
-            request.getRequestDispatcher("/afegir-components.jsp").forward(request, response);
-
-        } catch (Exception e) {
-            log("Error en doGet: " + e.getMessage());
-            e.printStackTrace();
-            request.setAttribute("error", "Error carregant dades: " + e.getMessage());
-            request.getRequestDispatcher("/ProducteServlet").forward(request, response);
-        }
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    
+    String codiProducte = request.getParameter("producte");
+    String nouProducteParam = request.getParameter("nouProducte");
+    
+    // Validació: codi de producte obligatori
+    if (codiProducte == null || codiProducte.trim().isEmpty()) {
+        response.sendRedirect("ProducteServlet?error=" + 
+            java.net.URLEncoder.encode("Codi de producte requerit", "UTF-8"));
+        return;
     }
 
+    try {
+        // Carregar dades del producte
+        Producte producte = daoProducte.findById(codiProducte.trim());
+        
+        if (producte == null) {
+            response.sendRedirect("ProducteServlet?error=" + 
+                java.net.URLEncoder.encode("Producte " + codiProducte + " no trobat", "UTF-8"));
+            return;
+        }
+        
+        // Determinar el mode d'operació
+        boolean esNouProducte = "true".equalsIgnoreCase(nouProducteParam);
+        
+        log("Carregant gestió de components per: " + codiProducte + 
+            " (mode: " + (esNouProducte ? "NOU" : "EDICIÓ") + ")");
+
+        // Carregar components actuals del producte
+        List<ProdItem> componentsAfegits = daoProdItem.getItemsDelProducte(codiProducte.trim());
+        log("   Components actuals: " + componentsAfegits.size());
+        
+        // Carregar llista de TOTS els components disponibles per afegir
+        List<Component> componentsDisponibles = daoComponent.findAll();
+        log("   Components disponibles totals: " + componentsDisponibles.size());
+        
+        // Carregar llista de TOTS els productes disponibles (per subproductes)
+        List<Producte> productesDisponibles = daoProducte.findAll();
+        // Filtrar: no pot contenir-se a si mateix
+        productesDisponibles.removeIf(p -> p.getPrCodi().equals(codiProducte));
+        log("   Subproductes disponibles: " + productesDisponibles.size());
+        
+        // Per cada component afegit, carregar el seu nom per mostrar a la taula
+        for (ProdItem item : componentsAfegits) {
+            // Intentar carregar com a Component
+            Component comp = daoComponent.findById(item.getPiItCodi());
+            if (comp != null) {
+                request.setAttribute("nom_" + item.getPiItCodi(), comp.getItNom());
+            } else {
+                // Si no és component, és subproducte
+                Producte subProd = daoProducte.findById(item.getPiItCodi());
+                if (subProd != null) {
+                    request.setAttribute("nom_" + item.getPiItCodi(), 
+                        subProd.getItNom() + " (Subproducte)");
+                }
+            }
+        }
+
+        // Passar dades a la JSP
+        request.setAttribute("producte", producte);
+        request.setAttribute("componentsAfegits", componentsAfegits);
+        request.setAttribute("componentsDisponibles", componentsDisponibles);
+        request.setAttribute("productesDisponibles", productesDisponibles);
+        request.setAttribute("esNouProducte", esNouProducte);
+        
+        // Missatges de feedback
+        String success = request.getParameter("success");
+        String error = request.getParameter("error");
+        if (success != null) request.setAttribute("success", success);
+        if (error != null) request.setAttribute("error", error);
+
+        // Forward a la JSP
+        request.getRequestDispatcher("/afegir-components.jsp").forward(request, response);
+
+    } catch (Exception e) {
+        log("Error carregant gestió de components: " + e.getMessage());
+        e.printStackTrace();
+        response.sendRedirect("ProducteServlet?error=" + 
+            java.net.URLEncoder.encode("Error carregant components: " + e.getMessage(), "UTF-8"));
+    }
+}
     /**
      * Gestiona peticions POST: afegir, eliminar o finalitzar components
      * 
