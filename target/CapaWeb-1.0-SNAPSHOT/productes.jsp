@@ -110,7 +110,7 @@
                                             <a href="ComponentProducteServlet?producte=${producte.prCodi}" 
                                                class="btn-icon btn-components" 
                                                title="Gestionar Components">
-                                                🔧
+                                                <img src="media/tool.svg">
                                             </a>
 
                                             <!-- Editar -->
@@ -219,17 +219,13 @@
                 height: 32px;
                 font-size: 18px;
                 text-decoration: none;
-                background-color: #f8f9fa;
-                border: 1px solid #dee2e6;
                 border-radius: 4px;
                 transition: all 0.2s ease;
                 cursor: pointer;
             }
             
             .btn-components:hover {
-                background-color: #007bff;
-                transform: scale(1.1);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                transform: scale(1.2);
             }
 
             .link-bom {

@@ -1,9 +1,11 @@
 controller\CharacterEncodingFilter.class
+controller\LoginServlet.class
 controller\BOMServlet.class
 controller\ProducteServlet.class
 com\mycompany\capaweb\resources\JakartaEE10Resource.class
 controller\ComponentProducteServlet.class
 controller\ProveidorComponentServlet.class
 controller\ComponentServlet.class
+filter\AuthenticationFilter.class
 com\mycompany\capaweb\JakartaRestConfiguration.class
 controller\ArbreBOMServlet.class
