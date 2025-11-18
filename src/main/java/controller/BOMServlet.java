@@ -1,77 +1,60 @@
 package controller;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import com.itextpdf.kernel.colors.ColorConstants;
-import com.itextpdf.kernel.colors.DeviceRgb;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.borders.Border;
-import com.itextpdf.layout.element.Cell;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.element.Table;
-import com.itextpdf.layout.properties.TextAlignment;
-import com.itextpdf.layout.properties.UnitValue;
 
 import dao.DAOFactory;
-import dao.IDAOComponent;
-import dao.IDAOItem;
-import dao.IDAOProdItem;
 import dao.IDAOProducte;
+import dao.reports.BOMReportJasper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Component;
-import model.Item;
-import model.ProdItem;
 import model.Producte;
 
 /**
- * Servlet per generar BOM (Bill of Materials) en format PDF
+ * Servlet per generar BOM (Bill of Materials) en format PDF amb JasperReports
  *
- * Responsabilitats: - Generar PDF amb la llista de materials d'un producte -
- * Incloure informació de components amb quantitats i preus - Calcular preu
- * total del producte
+ * Responsabilitats:
+ * - Validar paràmetres d'entrada
+ * - Verificar existència del producte
+ * - Delegar generació del PDF al backend (BOMReportJasper)
+ * - Gestionar errors i retornar PDF al client
  *
- * Format PDF: - Header: Informació producte + data - Taula: Components amb
- * codi, nom, UM, quantitat, preu unitari, subtotal - Footer: Preu total
+ * Flux:
+ * 1. Rebre codi producte per GET
+ * 2. Validar producte existeix
+ * 3. Cridar BOMReportJasper.generarBOMPDF()
+ * 4. Retornar PDF al navegador
  *
  * @author DomenechObiolAlbert
- * @version 1.0
+ * @version 2.0 (migrat a JasperReports)
  */
 @WebServlet(name = "BOMServlet", urlPatterns = {"/BOMServlet"})
 public class BOMServlet extends HttpServlet {
 
     private IDAOProducte daoProducte;
-    private IDAOProdItem daoProdItem;
-    private IDAOComponent daoComponent;
-    private IDAOItem daoItem;
+    private BOMReportJasper bomGenerator;
 
     @Override
     public void init() throws ServletException {
         try {
             this.daoProducte = DAOFactory.getDAOProducte();
-            this.daoProdItem = DAOFactory.getDAOProdItem();
-            this.daoComponent = DAOFactory.getDAOComponent();
-            this.daoItem = DAOFactory.getDAOItem();
-            log("✅ BOMServlet inicialitzat correctament");
+            this.bomGenerator = new BOMReportJasper();
+            log("✅ BOMServlet inicialitzat correctament amb JasperReports");
         } catch (Exception e) {
             log("❌ Error inicialitzant BOMServlet: " + e.getMessage());
-            throw new ServletException("No es pot inicialitzar els DAOs", e);
+            throw new ServletException("No es pot inicialitzar BOMServlet", e);
         }
     }
 
     /**
      * Gestiona peticions GET: genera PDF del BOM
      *
-     * Paràmetres requerits: - codi: Codi del producte
+     * Paràmetres requerits:
+     * - codi: Codi del producte
+     * 
+     * Exemple: /BOMServlet?codi=P001
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -79,6 +62,7 @@ public class BOMServlet extends HttpServlet {
 
         String codiProducte = request.getParameter("codi");
 
+        // Validació 1: Paràmetre obligatori
         if (codiProducte == null || codiProducte.trim().isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST,
                     "Paràmetre 'codi' requerit");
@@ -86,35 +70,37 @@ public class BOMServlet extends HttpServlet {
         }
 
         try {
-            // 1. Buscar producte
+            // Validació 2: Producte existeix
             Producte producte = daoProducte.findById(codiProducte.trim());
-
             if (producte == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND,
                         "Producte no trobat: " + codiProducte);
                 return;
             }
 
-            // 2. Obtenir components del producte
-            List<ProdItem> items = daoProdItem.getItemsDelProducte(codiProducte.trim());
-
-            if (items == null || items.isEmpty()) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                        "El producte no té components definits");
-                return;
-            }
-
-            // 3. Configurar resposta HTTP per PDF
+            // Configurar resposta HTTP per PDF
             response.setContentType("application/pdf");
             response.setHeader("Content-Disposition",
                     "inline; filename=BOM_" + codiProducte + ".pdf");
 
-            // 4. Generar PDF
-            generateBOMPDF(response.getOutputStream(), producte, items);
+            // Generar PDF amb JasperReports (delegat al backend)
+            bomGenerator.generarBOMPDF(codiProducte.trim(), response.getOutputStream());
 
-            log("✅ BOM generat per producte: " + codiProducte);
+            log("✅ BOM generat correctament per producte: " + codiProducte);
 
+        } catch (IllegalStateException e) {
+            // Producte sense components
+            log("⚠️ Producte sense components: " + codiProducte);
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "El producte no té components definits");
+                    
+        } catch (IllegalArgumentException e) {
+            // Error de validació
+            log("⚠️ Error de validació: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            
         } catch (Exception e) {
+            // Error inesperat
             log("❌ Error generant BOM: " + e.getMessage());
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -122,195 +108,8 @@ public class BOMServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Genera el PDF del BOM
-     */
-    private void generateBOMPDF(OutputStream outputStream, Producte producte, List<ProdItem> items)
-            throws Exception {
-
-        // Crear document PDF
-        PdfWriter writer = new PdfWriter(outputStream);
-        PdfDocument pdfDoc = new PdfDocument(writer);
-        Document document = new Document(pdfDoc);
-
-        // Colors corporatius
-        DeviceRgb colorPrimari = new DeviceRgb(0, 123, 255);
-        DeviceRgb colorSecundari = new DeviceRgb(108, 117, 125);
-
-        // =======================
-        // HEADER
-        // =======================
-        // Logo/Títol empresa
-        Paragraph titulo = new Paragraph("TALLERS MANOLO")
-                .setFontSize(24)
-                .setBold()
-                .setFontColor(colorPrimari)
-                .setTextAlignment(TextAlignment.CENTER);
-        document.add(titulo);
-
-        Paragraph subtitulo = new Paragraph("Bill of Materials (BOM)")
-                .setFontSize(16)
-                .setFontColor(colorSecundari)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginBottom(20);
-        document.add(subtitulo);
-
-        // Informació del producte
-        Table infoTable = new Table(UnitValue.createPercentArray(new float[]{30, 70}))
-                .setWidth(UnitValue.createPercentValue(100))
-                .setMarginBottom(20);
-
-        addInfoRow(infoTable, "Codi Producte:", producte.getPrCodi(), colorPrimari);
-        addInfoRow(infoTable, "Nom:", producte.getItNom(), colorPrimari);
-        addInfoRow(infoTable, "Descripció:", producte.getItDesc() != null ? producte.getItDesc() : "-", colorPrimari);
-        addInfoRow(infoTable, "Data Generació:", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), colorPrimari);
-
-        document.add(infoTable);
-
-        // =======================
-        // TAULA DE COMPONENTS
-        // =======================
-        Paragraph componentesTitle = new Paragraph("Components")
-                .setFontSize(14)
-                .setBold()
-                .setMarginTop(10)
-                .setMarginBottom(10);
-        document.add(componentesTitle);
-
-        // Taula amb 6 columnes
-        Table componentTable = new Table(UnitValue.createPercentArray(
-                new float[]{15, 30, 10, 10, 15, 20}))
-                .setWidth(UnitValue.createPercentValue(100));
-
-        // Header de la taula
-        String[] headers = {"Codi", "Nom Component", "UM", "Quantitat", "Preu Unit.", "Subtotal"};
-        for (String header : headers) {
-            Cell cell = new Cell()
-                    .add(new Paragraph(header).setBold().setFontColor(ColorConstants.WHITE))
-                    .setBackgroundColor(colorPrimari)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setPadding(8);
-            componentTable.addHeaderCell(cell);
-        }
-
-        // Dades dels components
-        double preuTotal = 0.0;
-
-        for (ProdItem pi : items) {
-            // Obtenir informació del component
-            Item item = daoItem.findById(pi.getPiItCodi());
-
-            if (item == null) {
-                log("⚠️ Item no trobat: " + pi.getPiItCodi());
-                continue;
-            }
-
-            String nom = item.getItNom();
-            String um = "-";
-            double preuUnitari = 0.0;
-
-            // Si és component, obtenir unitat mesura i preu
-            if ("C".equals(item.getItTipus())) {
-                // COMPONENT: obtenir preu mitjà i unitat de mesura
-                Component component = daoComponent.findById(item.getItCodi());
-                if (component != null) {
-                    um = component.getCmUmCodi();
-                    preuUnitari = component.getCmPreuMig() != null
-                            ? component.getCmPreuMig() : 0.0;
-                }
-            } else if ("P".equals(item.getItTipus())) {
-                // PRODUCTE: calcular cost recursivament via DAO
-                // (usa funció Oracle GET_COST_PRODUCTE)
-                preuUnitari = daoItem.calcularCostItem(item.getItCodi());
-            }
-
-            // Calcular subtotal
-            int quantitat = pi.getQuantitat() != null ? pi.getQuantitat() : 0;
-            double subtotal = preuUnitari * quantitat;
-            preuTotal += subtotal;
-
-            // Afegir fila
-            componentTable.addCell(createCell(item.getItCodi(), TextAlignment.LEFT));
-            componentTable.addCell(createCell(nom, TextAlignment.LEFT));
-            componentTable.addCell(createCell(um, TextAlignment.CENTER));
-            componentTable.addCell(createCell(String.valueOf(quantitat), TextAlignment.CENTER));
-            componentTable.addCell(createCell(String.format("%.2f €", preuUnitari), TextAlignment.RIGHT));
-            componentTable.addCell(createCell(String.format("%.2f €", subtotal), TextAlignment.RIGHT));
-        }
-
-        document.add(componentTable);
-
-        // =======================
-        // FOOTER - PREU TOTAL
-        // =======================
-        Table totalTable = new Table(UnitValue.createPercentArray(new float[]{80, 20}))
-                .setWidth(UnitValue.createPercentValue(100))
-                .setMarginTop(20);
-
-        Cell labelCell = new Cell()
-                .add(new Paragraph("PREU TOTAL").setBold().setFontSize(14))
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setBorder(Border.NO_BORDER)
-                .setPadding(5);
-
-        Cell preuCell = new Cell()
-                .add(new Paragraph(String.format("%.2f €", preuTotal))
-                        .setBold()
-                        .setFontSize(16)
-                        .setFontColor(colorPrimari))
-                .setTextAlignment(TextAlignment.RIGHT)
-                .setBackgroundColor(new DeviceRgb(240, 240, 240))
-                .setPadding(10);
-
-        totalTable.addCell(labelCell);
-        totalTable.addCell(preuCell);
-
-        document.add(totalTable);
-
-        // =======================
-        // FOOTER - INFORMACIÓ ADICIONAL
-        // =======================
-        Paragraph footer = new Paragraph("Yeaaaah funciona!!")
-                .setFontSize(8)
-                .setFontColor(colorSecundari)
-                .setTextAlignment(TextAlignment.CENTER)
-                .setMarginTop(30);
-        document.add(footer);
-
-        // Tancar document
-        document.close();
-    }
-
-    /**
-     * Afegeix una fila d'informació a la taula
-     */
-    private void addInfoRow(Table table, String label, String value, DeviceRgb color) {
-        Cell labelCell = new Cell()
-                .add(new Paragraph(label).setBold().setFontColor(color))
-                .setBorder(Border.NO_BORDER)
-                .setPadding(5);
-
-        Cell valueCell = new Cell()
-                .add(new Paragraph(value))
-                .setBorder(Border.NO_BORDER)
-                .setPadding(5);
-
-        table.addCell(labelCell);
-        table.addCell(valueCell);
-    }
-
-    /**
-     * Crea una cel·la de la taula de components
-     */
-    private Cell createCell(String text, TextAlignment alignment) {
-        return new Cell()
-                .add(new Paragraph(text))
-                .setTextAlignment(alignment)
-                .setPadding(5);
-    }
-
     @Override
     public String getServletInfo() {
-        return "Servlet per generar BOM (Bill of Materials) en PDF";
+        return "BOM Servlet - Genera Bill of Materials en PDF amb JasperReports";
     }
 }

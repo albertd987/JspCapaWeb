@@ -43,8 +43,12 @@
         
         .login-header {
             background-image: url('media/logoempresa.png');
+            background-size: 80%;
+            background-repeat: no-repeat;
+            background-position: center;
             padding: 40px 30px;
             text-align: center;
+            min-height: 150px;
         }
         
         .login-header h1 {
