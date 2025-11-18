@@ -198,79 +198,102 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
     /**
      * Gestiona l'afegit d'un component al producte
      */
-    private void handleAdd(HttpServletRequest request, HttpServletResponse response, 
-                          String codiProducte) throws ServletException, IOException {
-        
-        String codiComponent = request.getParameter("component");
-        String quantitatStr = request.getParameter("quantitat");
-        
-        // Validar paràmetres
-        if (codiComponent == null || codiComponent.trim().isEmpty()) {
-            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                "&error=Selecciona+un+component");
-            return;
-        }
-        
-        if (quantitatStr == null || quantitatStr.trim().isEmpty()) {
-            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                "&error=Quantitat+requerida");
-            return;
-        }
-
-        try {
-            int quantitat = Integer.parseInt(quantitatStr);
-            
-            if (quantitat <= 0) {
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&error=Quantitat+ha+de+ser+positiva");
-                return;
-            }
-
-            // Verificar que el producte existeix
-            Producte producte = daoProducte.findById(codiProducte);
-            if (producte == null) {
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&error=Producte+no+trobat");
-                return;
-            }
-
-            // Verificar que el component existeix i és tipus 'C'
-            Component component = daoComponent.findById(codiComponent.trim());
-            if (component == null) {
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&error=Component+no+trobat");
-                return;
-            }
-
-            // Verificar que la relació no existeix ja
-            ProdItem existent = daoProdItem.findById(codiProducte, codiComponent.trim());
-            if (existent != null) {
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&error=Component+ja+afegit");
-                return;
-            }
-
-            // Afegir component al producte
-            boolean exit = daoProdItem.afegirItemAProducte(codiProducte, 
-                                                           codiComponent.trim(), 
-                                                           quantitat);
-
-            if (exit) {
-                log("✅ Component " + codiComponent + " afegit a producte " + codiProducte + 
-                    " (qty: " + quantitat + ")");
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&success=Component+afegit+correctament");
-            } else {
-                response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                    "&error=No+s'ha+pogut+afegir+el+component");
-            }
-
-        } catch (NumberFormatException e) {
-            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
-                                "&error=Quantitat+ha+de+ser+un+número");
-        }
+private void handleAdd(HttpServletRequest request, HttpServletResponse response, 
+                      String codiProducte) throws ServletException, IOException {
+    
+    String codiComponent = request.getParameter("component");
+    String quantitatStr = request.getParameter("quantitat");
+    
+    // Validar paràmetres
+    if (codiComponent == null || codiComponent.trim().isEmpty()) {
+        response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                            "&error=Selecciona+un+component");
+        return;
+    }
+    
+    if (quantitatStr == null || quantitatStr.trim().isEmpty()) {
+        response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                            "&error=Quantitat+requerida");
+        return;
     }
 
+    try {
+        int quantitat = Integer.parseInt(quantitatStr);
+        
+        if (quantitat <= 0) {
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&error=Quantitat+ha+de+ser+positiva");
+            return;
+        }
+
+        // Verificar que el producte existeix
+        Producte producte = daoProducte.findById(codiProducte);
+        if (producte == null) {
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&error=Producte+no+trobat");
+            return;
+        }
+
+        // Verificar que l'ítem existeix (Component O Subproducte)
+        boolean itemExisteix = false;
+        String tipusItem = "";
+        
+        // Intentar trobar com a Component (tipus 'C')
+        Component component = daoComponent.findById(codiComponent.trim());
+        if (component != null) {
+            itemExisteix = true;
+            tipusItem = "Component";
+        } else {
+            // Si no és component, intentar trobar com a Subproducte (tipus 'P')
+            Producte subproducte = daoProducte.findById(codiComponent.trim());
+            if (subproducte != null) {
+                itemExisteix = true;
+                tipusItem = "Subproducte";
+                
+                // Un producte no es pot contenir a si mateix
+                if (subproducte.getPrCodi().equals(codiProducte)) {
+                    response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                        "&error=Un+producte+no+pot+contenir-se+a+si+mateix");
+                    return;
+                }
+            }
+        }
+        
+        // Si no existeix ni com a component ni com a subproducte, error
+        if (!itemExisteix) {
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&error=Item+no+trobat");
+            return;
+        }
+
+        // Verificar que la relació no existeix ja
+        ProdItem existent = daoProdItem.findById(codiProducte, codiComponent.trim());
+        if (existent != null) {
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&error=" + tipusItem + "+ja+afegit");
+            return;
+        }
+
+        // Afegir item al producte (pot ser component o subproducte)
+        boolean exit = daoProdItem.afegirItemAProducte(codiProducte, 
+                                                       codiComponent.trim(), 
+                                                       quantitat);
+
+        if (exit) {
+            log("✅ " + tipusItem + " " + codiComponent + " afegit a producte " + codiProducte + 
+                " (qty: " + quantitat + ")");
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&success=" + tipusItem + "+afegit+correctament");
+        } else {
+            response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                                "&error=No+s'ha+pogut+afegir+" + tipusItem.toLowerCase());
+        }
+
+    } catch (NumberFormatException e) {
+        response.sendRedirect("ComponentProducteServlet?producte=" + codiProducte + 
+                            "&error=Quantitat+ha+de+ser+un+número");
+    }
+}
     /**
      * Gestiona l'eliminació d'un component del producte
      */
