@@ -72,14 +72,14 @@
                         </div>
                         
                         <div class="grup-camp">
-                            <label class="etiqueta" for="codiFabricant">CODI_FABRICANT</label>
+                            <label class="etiqueta" for="codiFabricant">CODI_FABRICANT *</label>
                             <input type="text" 
                                    id="codiFabricant" 
                                    name="codiFabricant" 
                                    class="camp" 
                                    placeholder="FAB-XXX" 
                                    maxlength="20"
-                                   value="<%= component != null ? (component.getCmCodiFabricant() != null ? component.getCmCodiFabricant() : "") : "" %>">
+                                   value="<%= component != null ? (component.getCmCodiFabricant() != null ? component.getCmCodiFabricant() : "") : "" %>" required>
                         </div>
                     </div>
 

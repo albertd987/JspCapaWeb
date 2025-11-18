@@ -6,6 +6,7 @@ import java.util.List;
 import dao.DAOFactory;
 import dao.IDAOComponent;
 import dao.IDAOProdItem;
+import dao.IDAOProvComp;
 import dao.IDAOUnitatMesura;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Component;
 import model.ProdItem;
+import model.ProvComp;
 import model.UnitatMesura;
 
 /**
@@ -162,6 +164,7 @@ public class ComponentServlet extends HttpServlet {
             // Crear objecte Component
             Component component = new Component();
             component.setItCodi(codi.trim().toUpperCase());
+            component.setCmCodi(codi.trim().toUpperCase());
             component.setItNom(nom.trim());
             component.setItDesc(descripcio != null ? descripcio.trim() : "");
             component.setCmUmCodi(umCodi.trim());
@@ -291,7 +294,7 @@ private void handleDelete(HttpServletRequest request, HttpServletResponse respon
 
     try {
         // ========================================
-        // VALIDACIÓ: Verificar si està sent usat en productes
+        // VALIDACIÓ 1: Verificar si està sent usat en productes
         // ========================================
         log("Verificant si " + codi + " està sent usat en productes...");
         
@@ -304,42 +307,54 @@ private void handleDelete(HttpServletRequest request, HttpServletResponse respon
                 productesQueElUsen.size() + " producte(s)");
             
             // Construir missatge d'error detallat
-            StringBuilder missatge = new StringBuilder();
-            missatge.append("No pots eliminar el component ").append(codi)
-                    .append(" perquè està sent usat en ").append(productesQueElUsen.size())
-                    .append(" producte(s):\n\n");
+            StringBuilder errorMsg = new StringBuilder("No es pot eliminar el component ");
+            errorMsg.append(codi).append(" perquè està sent usat en els següents productes: ");
             
-            // Llistar fins a 10 productes (per no fer el missatge massa llarg)
-            int maxMostrar = Math.min(10, productesQueElUsen.size());
-            for (int i = 0; i < maxMostrar; i++) {
-                ProdItem uso = productesQueElUsen.get(i);
-                missatge.append("• ").append(uso.getPiPrCodi())
-                        .append(" (quantitat: ").append(uso.getQuantitat()).append(")\n");
+            for (int i = 0; i < productesQueElUsen.size(); i++) {
+                errorMsg.append(productesQueElUsen.get(i).getPiPrCodi());
+                if (i < productesQueElUsen.size() - 1) {
+                    errorMsg.append(", ");
+                }
             }
             
-            if (productesQueElUsen.size() > 10) {
-                missatge.append("... i ").append(productesQueElUsen.size() - 10)
-                        .append(" productes més\n");
-            }
-            
-            missatge.append("\n Per eliminar aquest component:\n")
-                    .append("1. Ves a la llista de Productes\n")
-                    .append("2. Utilitza el botó 'Gestionar Components' de cada producte\n")
-                    .append("3. Elimina ").append(codi).append(" de cada producte\n")
-                    .append("4. Després podràs eliminar el component");
-            
-            request.setAttribute("error", missatge.toString());
+            request.setAttribute("error", errorMsg.toString());
             doGet(request, response);
             return;
         }
         
-        log( codi + " NO està sent usat en cap producte");
+        log("Items trobats que usen " + codi + ": " + productesQueElUsen.size());
+        log(codi + " NO està sent usat en cap producte");
         
         // ========================================
-        // ELIMINACIÓ: El component NO està sent usat
+        // ⭐ VALIDACIÓ 2: Verificar si té proveidors associats
         // ========================================
+        log("Verificant si " + codi + " té proveïdors associats...");
         
-        log(" Eliminant component: " + codi);
+        IDAOProvComp daoProvComp = DAOFactory.getDAOProvComp();
+        List<ProvComp> proveidors = daoProvComp.getProveidorsDelComponent(codi.trim());
+        
+        if (!proveidors.isEmpty()) {
+            // ❌ El component té proveïdors associats
+            log("⚠️ No es pot eliminar " + codi + " - té " + 
+                proveidors.size() + " proveïdor(s) associat(s)");
+            
+            // Construir missatge d'error detallat
+            StringBuilder errorMsg = new StringBuilder("No es pot eliminar el component ");
+            errorMsg.append(codi).append(" perquè té proveïdors associats. ");
+            errorMsg.append("Elimina primer els proveïdors des de la gestió de proveïdors.");
+            
+            request.setAttribute("error", errorMsg.toString());
+            doGet(request, response);
+            return;
+        }
+        
+        log("Proveïdors associats a " + codi + ": " + proveidors.size());
+        log(codi + " NO té proveïdors associats");
+        
+        // ========================================
+        // ✅ Si arriba aquí, es pot eliminar
+        // ========================================
+        log("✅ Eliminant component: " + codi);
         boolean exit = daoComponent.eliminar(codi.trim());
 
         if (exit) {
@@ -352,7 +367,6 @@ private void handleDelete(HttpServletRequest request, HttpServletResponse respon
 
     } catch (Exception e) {
         log("Error eliminant component: " + e.getMessage());
-        e.printStackTrace();
         request.setAttribute("error", "Error eliminant component: " + e.getMessage());
     }
 
